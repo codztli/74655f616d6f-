@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jardín Mágico Permanente</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #6bbd67;
+            background-image: 
+                radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 100%),
+                radial-gradient(circle at center, rgba(175, 220, 160, 0.4) 0%, rgba(107, 191, 89, 0.6) 80%, rgba(70, 140, 60, 0.8) 100%),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0,0,0,0.1) 0px,
+                    rgba(0,0,0,0.1) 1px,
+                    transparent 1px,
+                    transparent 3px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(0,0,0,0.05) 0px,
+                    rgba(0,0,0,0.05) 1px,
+                    transparent 1px,
+                    transparent 3px
+                ),
+                linear-gradient(
+                    160deg, 
+                    #8BC34A 0%,
+                    #689F38 40%,
+                    #33691E 80%,
+                    #214715 100%
+                );
+            background-blend-mode: multiply, overlay, soft-light, soft-light, normal;
+            background-size: cover, cover, 100% 100%, 100% 100%, cover;
+        }
+
+        .garden {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .sparkle {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle-burst 0.5s forwards;
+            box-shadow: 0 0 5px #ffea00, 0 0 10px #ffea00, 0 0 15px #ffea00;
+            z-index: 2;
+        }
+
+        .dust-particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float-particle var(--duration) linear infinite;
+            filter: blur(1px);
+            opacity: 0;
+            animation-delay: var(--delay);
+            z-index: 0;
+        }
+
+        .snoopy {
+            position: absolute;
+            width: 80px;
+            height: auto;
+            opacity: 0;
+            cursor: pointer;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 204, 0.8)); 
+            animation: float-snoopy var(--snoopy-duration) ease-in-out infinite alternate, 
+                        snoopy-appear 0.8s ease-out forwards,
+                        snoopy-color-change 20s linear infinite;
+            z-index: 5;
+        }
+        
+        .snoopy.disappear {
+            animation: snoopy-disappear 0.6s ease-in forwards;
+            pointer-events: none;
+        }
+        
+        .vortex-effect {
+            position: absolute;
+            border: 2px solid rgba(173, 216, 230, 0.7);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(173, 216, 230, 0.9), 0 0 25px rgba(173, 216, 230, 0.6);
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0);
+            animation: vortex-pulse 1s forwards infinite;
+            z-index: 3;
+        }
+
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 204, 0.95);
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 15px;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            z-index: 10;
+            animation: message-fade-in 1s ease-out forwards;
+        }
+
+        .message-box h1 {
+            font-family: 'Papyrus', fantasy;
+            color: #d4af37;
+            margin-bottom: 8px;
+            font-size: 1.2em;
+        }
+
+        .message-box p {
+            font-size: 0.9em;
+            color: #4b3b2f;
+        }
+        
+        #fecha-fija {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .snoopy-message {
+            position: absolute;
+            background: rgba(255, 255, 204, 0.9);
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 0.9em;
+            color: #4b3b2f;
+            white-space: nowrap;
+            opacity: 0;
+            animation: snoopy-message-show 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 6;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .snoopy-finale-sparkle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 234, 0, 1) 0%, rgba(255, 234, 0, 0.5) 40%, rgba(255, 234, 0, 0) 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: snoopy-finale-sparkle-anim 1.5s ease-out forwards;
+            z-index: 4;
+            transform: scale(0);
+        }
+        
+        @keyframes vortex-pulse {
+            0% { transform: scale(0.5); opacity: 0.8; }
+            50% { transform: scale(1); opacity: 0.4; }
+            100% { transform: scale(0.5); opacity: 0.8; }
+        }
+
+        @keyframes sparkle-burst {
+            from {
+                transform: scale(0);
+                opacity: 1;
+            }
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translate(0, 0) scale(var(--scale));
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--endX), var(--endY)) scale(var(--scale));
+                opacity: 0;
+            }
+        }
+
+        @keyframes float-snoopy {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
+        @keyframes snoopy-appear {
+            from { opacity: 0; transform: scale(0.5) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0px); }
+        }
+
+        @keyframes snoopy-disappear {
+            0% { opacity: 1; transform: scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: scale(0.2) rotate(30deg); }
+        }
+
+        @keyframes snoopy-color-change {
+            from { filter: hue-rotate(0deg) drop-shadow(0 0 8px rgba(255, 255, 204, 0.8)); }
+            to { filter: hue-rotate(360deg) drop-shadow(0 0 8px rgba(255, 255, 204, 0.8)); }
+        }
+
+        @keyframes message-fade-in {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        @keyframes snoopy-message-show {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes snoopy-message-fade {
+            to { opacity: 0; }
+        }
+        
+        @keyframes snoopy-finale-sparkle-anim {
+            from { transform: scale(0); opacity: 1; }
+            to { transform: scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="garden" id="garden">
+        <canvas id="flower-canvas"></canvas>
+    </div>
+
+    <div class="message-box" id="message-box">
+        <h1>🌻 Jardín Mágico🐾</h1>
+        <img src="snoopy2.png" alt="Snoopy dando la bienvenida" style="width: 100px; height: auto; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+
+        <p>
+        <strong>Maggiieeeeeeeeeeeeee!!!!!!!!!!</strong>
+        </p>
+        <p>
+        Te regalo un jardin de flores :)
+        </p>
+        <div id="fecha-fija">21/09/2025</div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const garden = document.getElementById('garden');
+            const messageBox = document.getElementById('message-box');
+            const canvas = document.getElementById('flower-canvas');
+            const ctx = canvas.getContext('2d');
+            let flowers = [];
+            let lastFlowerTime = 0;
+            const flowerGenerationDelay = 100;
+            let currentSnoopy = null;
+            let isDrawing = false;
+            let isVortexActive = false;
+            let vortexEffectElement = null;
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            setTimeout(() => {
+                if (messageBox) {
+                    messageBox.style.display = 'none';
+                }
+            }, 10000);
+
+            function createSparkle(x, y, count = 5) {
+                for (let i = 0; i < count; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.classList.add('sparkle');
+                    const size = 5 + Math.random() * 10;
+                    sparkle.style.width = `${size}px`;
+                    sparkle.style.height = `${size}px`;
+                    sparkle.style.left = `${x + (Math.random() - 0.5) * 20}px`;
+                    sparkle.style.top = `${y + (Math.random() - 0.5) * 20}px`;
+                    document.body.appendChild(sparkle);
+
+                    setTimeout(() => {
+                        sparkle.remove();
+                    }, 500);
+                }
+            }
+
+            function createFlower(x, y) {
+                const randomScale = 0.7 + Math.random() * 0.6;
+                const isSpecialColor = Math.random() < 0.15;
+                let hue, saturation, lightness;
+
+                if (!isSpecialColor) {
+                    hue = 40 + Math.random() * 20;
+                    saturation = 80 + Math.random() * 20;
+                    lightness = 50 + Math.random() * 20;
+                } else {
+                    const specialColors = [
+                        { hue: 350, saturation: 80, lightness: 65 },
+                        { hue: 20, saturation: 90, lightness: 60 },
+                        { hue: 250, saturation: 70, lightness: 70 },
+                    ];
+                    const selectedColor = specialColors[Math.floor(Math.random() * specialColors.length)];
+                    hue = selectedColor.hue;
+                    saturation = selectedColor.saturation;
+                    lightness = selectedColor.lightness;
+                }
+
+                flowers.push({
+                    x, 
+                    y, 
+                    scale: randomScale, 
+                    currentRotation: Math.random() * 360, 
+                    color: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+                    creationTime: Date.now(),
+                    targetX: x, 
+                    targetY: y,
+                    isBeingAbsorbed: false 
+                });
+            }
+
+            function drawFlower(flower) {
+                ctx.save();
+                ctx.translate(flower.x, flower.y);
+                ctx.rotate(flower.currentRotation * Math.PI / 180);
+                ctx.scale(flower.scale, flower.scale);
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, 40);
+                ctx.strokeStyle = '#33691E';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#33691E';
+                ctx.beginPath();
+                ctx.ellipse(5, 20, 10, 5, -Math.PI / 4, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(-5, 25, 10, 5, Math.PI / 4, 0, 2 * Math.PI);
+                ctx.fill();
+
+                const petalCount = 8;
+                const radius = 25;
+                const randomColor = flower.color;
+
+                for (let i = 0; i < petalCount; i++) {
+                    const angle = (i / petalCount) * 2 * Math.PI;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.arc(0, 0, radius, angle - Math.PI / petalCount, angle + Math.PI / petalCount);
+                    ctx.closePath();
+                    ctx.fillStyle = randomColor;
+                    ctx.fill();
+                }
+
+                ctx.beginPath();
+                ctx.arc(0, 0, 10, 0, 2 * Math.PI);
+                ctx.fillStyle = "#A0522D";
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (currentSnoopy) {
+                    const snoopyRect = currentSnoopy.getBoundingClientRect();
+                    const snoopyX = snoopyRect.left + snoopyRect.width / 2;
+                    const snoopyY = snoopyRect.top + snoopyRect.height / 2;
+                    const absorptionRadius = 150;
+
+                    flowers = flowers.filter(flower => {
+                        const dx = flower.x - snoopyX;
+                        const dy = flower.y - snoopyY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < absorptionRadius) {
+                            flower.isBeingAbsorbed = true;
+                            flower.x -= dx * 0.05; 
+                            flower.y -= dy * 0.05;
+                            flower.scale *= 0.98;
+                            flower.currentRotation += 5;
+
+                            if (flower.scale < 0.1 || distance < 10) {
+                                createSparkle(flower.x, flower.y, 5);
+                                return false;
+                            }
+                        } else {
+                            flower.isBeingAbsorbed = false;
+                        }
+                        return true;
+                    });
+                }
+
+                if (isVortexActive && vortexEffectElement) {
+                    const vortexX = parseFloat(vortexEffectElement.style.left) + parseFloat(vortexEffectElement.style.width) / 2;
+                    const vortexY = parseFloat(vortexEffectElement.style.top) + parseFloat(vortexEffectElement.style.height) / 2;
+                    const vortexRadius = 150;
+
+                    flowers = flowers.filter(flower => {
+                        const dx = flower.x - vortexX;
+                        const dy = flower.y - vortexY;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < vortexRadius) {
+                            flower.isBeingAbsorbed = true; 
+                            flower.x -= dx * 0.08; 
+                            flower.y -= dy * 0.08;
+                            flower.scale *= 0.98;
+                            flower.currentRotation += 10;
+                            if (flower.scale < 0.1 || distance < 10) {
+                                createSparkle(flower.x, flower.y, 5);
+                                return false;
+                            }
+                        } else {
+                            if (!flower.isBeingAbsorbed) {
+                                flower.isBeingAbsorbed = false;
+                            }
+                        }
+                        return true;
+                    });
+                }
+                
+                const onScreenFlowers = flowers.filter(flower => 
+                    flower.x > -100 && flower.x < canvas.width + 100 &&
+                    flower.y > -100 && flower.y < canvas.height + 100
+                );
+
+                flowers = onScreenFlowers;
+
+                flowers.forEach(flower => {
+                    if (!flower.isBeingAbsorbed) {
+                        flower.currentRotation += 0.1;
+                    }
+                    drawFlower(flower);
+                });
+                
+                const currentTime = Date.now();
+                if (currentTime - lastFlowerTime > 200) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    createFlower(x, y);
+                    lastFlowerTime = currentTime;
+                }
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            function createDustParticle() {
+                const particle = document.createElement('div');
+                particle.classList.add('dust-particle');
+                const size = 2 + Math.random() * 4;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight;
+                particle.style.left = `${startX}px`;
+                particle.style.top = `${startY}px`;
+                const duration = 10 + Math.random() * 10;
+                const delay = Math.random() * 10;
+                const endX = (Math.random() - 0.5) * window.innerWidth;
+                const endY = window.innerHeight * 1.5;
+                const scale = 0.5 + Math.random() * 1;
+                particle.style.setProperty('--duration', `${duration}s`);
+                particle.style.setProperty('--delay', `${delay}s`);
+                particle.style.setProperty('--endX', `${endX}px`);
+                particle.style.setProperty('--endY', `${endY}px`);
+                particle.style.setProperty('--scale', `${scale}`);
+                garden.appendChild(particle);
+                setTimeout(() => { particle.remove(); }, (duration + delay) * 1000);
+            }
+            setInterval(createDustParticle, 500);
+
+            function handleInteraction(e, type) {
+                const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : undefined);
+                const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : undefined);
+
+                if (clientX === undefined || clientY === undefined) return;
+
+                if (e.shiftKey || (type === 'vortex' && isVortexActive)) {
+                    if (!vortexEffectElement) {
+                        vortexEffectElement = document.createElement('div');
+                        vortexEffectElement.classList.add('vortex-effect');
+                        garden.appendChild(vortexEffectElement);
+                    }
+                    const vortexSize = 100;
+                    vortexEffectElement.style.width = `${vortexSize}px`;
+                    vortexEffectElement.style.height = `${vortexSize}px`;
+                    vortexEffectElement.style.left = `${clientX - vortexSize / 2}px`;
+                    vortexEffectElement.style.top = `${clientY - vortexSize / 2}px`;
+                    vortexEffectElement.style.opacity = 1;
+                    isVortexActive = true;
+                } else {
+                    if (vortexEffectElement) {
+                        vortexEffectElement.style.opacity = 0;
+                        vortexEffectElement.remove();
+                        vortexEffectElement = null;
+                    }
+                    const currentTime = Date.now();
+                    if (currentTime - lastFlowerTime > flowerGenerationDelay) {
+                        createFlower(clientX, clientY);
+                        lastFlowerTime = currentTime;
+                    }
+                }
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                handleInteraction(e, 'draw');
+            });
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDrawing) {
+                    handleInteraction(e, e.shiftKey ? 'vortex' : 'draw');
+                }
+            });
+            canvas.addEventListener('mouseup', () => {
+                isDrawing = false;
+                isVortexActive = false;
+                if (vortexEffectElement) {
+                    vortexEffectElement.style.opacity = 0;
+                    vortexEffectElement.remove();
+                    vortexEffectElement = null;
+                }
+            });
+            canvas.addEventListener('mouseleave', () => {
+                isDrawing = false;
+                isVortexActive = false;
+                if (vortexEffectElement) {
+                    vortexEffectElement.style.opacity = 0;
+                    vortexEffectElement.remove();
+                    vortexEffectElement = null;
+                }
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                handleInteraction(e, 'draw');
+            }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (isDrawing) handleInteraction(e, 'draw');
+            }, { passive: false });
+            canvas.addEventListener('touchend', () => {
+                isDrawing = false;
+                isVortexActive = false;
+                if (vortexEffectElement) {
+                    vortexEffectElement.style.opacity = 0;
+                    vortexEffectElement.remove();
+                    vortexEffectElement = null;
+                }
+            });
+
+            canvas.addEventListener('click', (e) => {
+                const x = e.clientX;
+                const y = e.clientY;
+                for (let i = flowers.length - 1; i >= 0; i--) {
+                    const flower = flowers[i];
+                    const distance = Math.sqrt((x - flower.x)**2 + (y - flower.y)**2);
+                    if (distance < 30 * flower.scale) {
+                        createSparkle(x, y, 20);
+                        flowers.splice(i, 1);
+                        break;
+                    }
+                }
+            });
+
+            function createSnoopyMessage(x, y) {
+                const message = document.createElement('div');
+                message.classList.add('snoopy-message');
+                const messages = [
+                    "¡Para ti, con cariño! 🌻",
+                    "Las flores traen felicidad. 😊",
+                    "Te quiero mucho!!!!!!!. ✨",
+                    "¡Que tu día florezca como estas flores! 💛",
+                    "¡Gracias por estar :) ! 💛",
+                    "¡Eres increíble! 🌟",
+                    "¡Sigue brillando! 🌞",
+                    "¡Eres una flor en este jardín! 🌸",
+                    "¡Tu sonrisa ilumina el día! 😄",
+                    "¡Eres especial! 🌟",
+                    "¡Nunca dejes de soñar! 🌈",
+                    "¡Sigue haciendote mas fuerte! 🌱",
+                    "¡Eres maravillosa! 🌟",
+                    "¡Eres un rayo de sol! ☀️",
+                    "¡Eres una inspiración! 🌟",
+                    "¡Gracias por escucharme! 💖",
+                    "¡Eres mi persona favorita! 💕",
+                    "¡Disfruto mucho tu compañía! 😊",
+                ];
+                message.textContent = messages[Math.floor(Math.random() * messages.length)];
+                
+                let messageX = x;
+                let messageY = y - 120;
+                
+                message.style.left = `0px`;
+                message.style.top = `0px`;
+                document.body.appendChild(message);
+
+                const messageWidth = message.offsetWidth;
+                const messageHeight = message.offsetHeight;
+
+                if (messageX + messageWidth > window.innerWidth - 20) {
+                    messageX = window.innerWidth - messageWidth - 20;
+                }
+                if (messageX < 20) {
+                    messageX = 20;
+                }
+                if (messageY < 20) {
+                    messageY = y + 20;
+                }
+
+                message.style.left = `${messageX}px`;
+                message.style.top = `${messageY}px`;
+                
+                garden.appendChild(message);
+
+                setTimeout(() => message.remove(), 7000);
+            }
+
+            function createSnoopyFinaleSparkle(x, y) {
+                const finaleSparkle = document.createElement('div');
+                finaleSparkle.classList.add('snoopy-finale-sparkle');
+                const size = 100 + Math.random() * 50;
+                finaleSparkle.style.width = `${size}px`;
+                finaleSparkle.style.height = `${size}px`;
+                finaleSparkle.style.left = `${x - size / 2}px`;
+                finaleSparkle.style.top = `${y - size / 2}px`;
+                garden.appendChild(finaleSparkle);
+                setTimeout(() => finaleSparkle.remove(), 1500);
+            }
+
+            function showSnoopy() {
+                if (currentSnoopy && garden.contains(currentSnoopy)) {
+                    return;
+                }
+                const snoopy = document.createElement('img');
+                snoopy.src = 'snoopy.png';
+                snoopy.classList.add('snoopy');
+                const x = Math.random() * (window.innerWidth - 80);
+                const y = Math.random() * (window.innerHeight - 80);
+                snoopy.style.left = `${x}px`;
+                snoopy.style.top = `${y}px`;
+                snoopy.style.setProperty('--snoopy-duration', `${5 + Math.random() * 5}s`);
+                garden.appendChild(snoopy);
+                currentSnoopy = snoopy;
+                const autoDisappearTimeout = setTimeout(() => {
+                    if (currentSnoopy === snoopy) {
+                        snoopy.classList.add('disappear');
+                        createSnoopyMessage(x + 40, y);
+                        createSnoopyFinaleSparkle(x + 40, y + 40);
+                        setTimeout(() => {
+                            snoopy.remove();
+                            currentSnoopy = null;
+                            snoopyCycle();
+                        }, 600);
+                    }
+                }, 6000);
+                const handleSnoopyInteraction = (e) => {
+                    if (currentSnoopy === snoopy) {
+                        if (e.type === 'touchend') e.preventDefault();
+                        const rect = snoopy.getBoundingClientRect();
+                        const snoopyX = rect.left + rect.width / 2;
+                        const snoopyY = rect.top + rect.height / 2;
+                        createSparkle(snoopyX, snoopyY, 20);
+                        clearTimeout(autoDisappearTimeout);
+                        snoopy.classList.add('disappear');
+                        createSnoopyMessage(snoopyX, snoopyY);
+                        createSnoopyFinaleSparkle(snoopyX, snoopyY);
+                        setTimeout(() => {
+                            snoopy.remove();
+                            currentSnoopy = null;
+                            snoopyCycle();
+                        }, 600);
+                    }
+                };
+                snoopy.addEventListener('click', handleSnoopyInteraction);
+                snoopy.addEventListener('touchend', handleSnoopyInteraction);
+            }
+
+            function snoopyCycle() {
+                const nextAppearanceDelay = 2000 + Math.random() * 5000;
+                setTimeout(() => {
+                    showSnoopy();
+                }, nextAppearanceDelay);
+            }
+            snoopyCycle();
+        });
+    </script>
+</body>
+</html>
