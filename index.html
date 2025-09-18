@@ -245,6 +245,8 @@
             from { transform: scale(0); opacity: 1; }
             to { transform: scale(1); opacity: 0; }
         }
+
+
     </style>
 </head>
 <body>
@@ -350,39 +352,65 @@
                 ctx.rotate(flower.currentRotation * Math.PI / 180);
                 ctx.scale(flower.scale, flower.scale);
 
+                // Tallo
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.lineTo(0, 40);
                 ctx.strokeStyle = '#33691E';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 3;
                 ctx.stroke();
 
-                ctx.fillStyle = '#33691E';
+                // Hojas
+                ctx.fillStyle = '#4CAF50';
                 ctx.beginPath();
-                ctx.ellipse(5, 20, 10, 5, -Math.PI / 4, 0, 2 * Math.PI);
+                ctx.ellipse(5, 20, 12, 6, -Math.PI / 5, 0, 2 * Math.PI);
                 ctx.fill();
                 ctx.beginPath();
-                ctx.ellipse(-5, 25, 10, 5, Math.PI / 4, 0, 2 * Math.PI);
+                ctx.ellipse(-5, 25, 12, 6, Math.PI / 5, 0, 2 * Math.PI);
                 ctx.fill();
 
-                const petalCount = 8;
-                const radius = 25;
-                const randomColor = flower.color;
+                // Pétalos
+                const petalCount = flower.petalCount || 8;
+                
+                // --- Gradiente para el relleno ---
+                const gradient = ctx.createRadialGradient(0, 0, 1, 0, 0, 25);
+                const hslMatch = flower.color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+                let lighterColor = flower.color;
+                let darkerColor = flower.color;
+                if (hslMatch) {
+                    const [_, h, s, l] = hslMatch;
+                    lighterColor = `hsl(${h}, ${s}%, ${Math.min(100, parseInt(l) + 20)}%)`;
+                    darkerColor = `hsl(${h}, ${s}%, ${Math.max(0, parseInt(l) - 20)}%)`;
+                }
+                gradient.addColorStop(0, lighterColor);
+                gradient.addColorStop(1, flower.color);
+                ctx.fillStyle = gradient;
+
+                // --- Estilo del borde ---
+                ctx.strokeStyle = darkerColor;
+                ctx.lineWidth = 1;
 
                 for (let i = 0; i < petalCount; i++) {
                     const angle = (i / petalCount) * 2 * Math.PI;
+                    ctx.save();
+                    ctx.rotate(angle);
                     ctx.beginPath();
                     ctx.moveTo(0, 0);
-                    ctx.arc(0, 0, radius, angle - Math.PI / petalCount, angle + Math.PI / petalCount);
-                    ctx.closePath();
-                    ctx.fillStyle = randomColor;
+                    ctx.quadraticCurveTo(15, 15, 0, 30);
+                    ctx.quadraticCurveTo(-15, 15, 0, 0);
                     ctx.fill();
+                    ctx.stroke(); // Dibujar el borde
+                    ctx.restore();
                 }
 
+                // Centro de la flor
                 ctx.beginPath();
-                ctx.arc(0, 0, 10, 0, 2 * Math.PI);
-                ctx.fillStyle = "#A0522D";
+                ctx.arc(0, 0, 12, 0, 2 * Math.PI);
+                ctx.fillStyle = "rgba(160, 82, 45, 0.8)";
                 ctx.fill();
+                ctx.strokeStyle = "rgba(92, 51, 23, 0.8)"; // Borde más oscuro para el centro
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
 
                 ctx.restore();
             }
@@ -394,7 +422,7 @@
                     const snoopyRect = currentSnoopy.getBoundingClientRect();
                     const snoopyX = snoopyRect.left + snoopyRect.width / 2;
                     const snoopyY = snoopyRect.top + snoopyRect.height / 2;
-                    const absorptionRadius = 150;
+                    const absorptionRadius = 250;
 
                     flowers = flowers.filter(flower => {
                         const dx = flower.x - snoopyX;
@@ -707,7 +735,7 @@
             }
 
             function snoopyCycle() {
-                const nextAppearanceDelay = 2000 + Math.random() * 5000;
+                const nextAppearanceDelay = 1500 + Math.random() * 2000;
                 setTimeout(() => {
                     showSnoopy();
                 }, nextAppearanceDelay);
