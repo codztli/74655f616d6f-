@@ -338,6 +338,8 @@
                     lightness = selectedColor.lightness;
                 }
 
+                const flowerType = Math.floor(Math.random() * 3);
+
                 flowers.push({
                     x, 
                     y, 
@@ -347,7 +349,8 @@
                     creationTime: Date.now(),
                     targetX: x, 
                     targetY: y,
-                    isBeingAbsorbed: false 
+                    isBeingAbsorbed: false,
+                    flowerType: flowerType
                 });
             }
 
@@ -373,9 +376,6 @@
                 ctx.beginPath();
                 ctx.ellipse(-5, 25, 12, 6, Math.PI / 5, 0, 2 * Math.PI);
                 ctx.fill();
-
-                // Pétalos
-                const petalCount = flower.petalCount || 8;
                 
                 // --- Gradiente para el relleno ---
                 const gradient = ctx.createRadialGradient(0, 0, 1, 0, 0, 25);
@@ -395,23 +395,61 @@
                 ctx.strokeStyle = darkerColor;
                 ctx.lineWidth = 1;
 
-                for (let i = 0; i < petalCount; i++) {
-                    const angle = (i / petalCount) * 2 * Math.PI;
-                    ctx.save();
-                    ctx.rotate(angle);
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.quadraticCurveTo(15, 15, 0, 30);
-                    ctx.quadraticCurveTo(-15, 15, 0, 0);
-                    ctx.fill();
-                    ctx.stroke(); // Dibujar el borde
-                    ctx.restore();
+                switch (flower.flowerType) {
+                    case 0: // Original flower
+                    default:
+                        const petalCount = 8;
+                        for (let i = 0; i < petalCount; i++) {
+                            const angle = (i / petalCount) * 2 * Math.PI;
+                            ctx.save();
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.quadraticCurveTo(15, 15, 0, 30);
+                            ctx.quadraticCurveTo(-15, 15, 0, 0);
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                        break;
+                    case 1: // Daisy-like flower
+                        const daisyPetals = 12;
+                        for (let i = 0; i < daisyPetals; i++) {
+                            const angle = (i / daisyPetals) * 2 * Math.PI;
+                            ctx.save();
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            ctx.ellipse(0, 18, 4, 15, 0, 0, 2 * Math.PI);
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                        break;
+                    case 2: // Tulip-like flower
+                        const tulipPetals = 3;
+                        for (let i = 0; i < tulipPetals; i++) {
+                            const angle = (i / tulipPetals) * 2 * Math.PI;
+                            ctx.save();
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            ctx.moveTo(0, -10);
+                            ctx.quadraticCurveTo(25, 10, 20, 30);
+                            ctx.lineTo(-20, 30);
+                            ctx.quadraticCurveTo(-25, 10, 0, -10);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                        break;
                 }
 
-                // Centro de la flor
+
+                // Centro de la flor con brillo
+                const pulse = Math.sin((Date.now() - flower.creationTime) / 400) * 5 + 40; // lightness from 35% to 45%
                 ctx.beginPath();
                 ctx.arc(0, 0, 12, 0, 2 * Math.PI);
-                ctx.fillStyle = "rgba(160, 82, 45, 0.8)";
+                ctx.fillStyle = `hsla(24, 55%, ${pulse}%, 0.9)`; // Animate lightness
                 ctx.fill();
                 ctx.strokeStyle = "rgba(92, 51, 23, 0.8)"; // Borde más oscuro para el centro
                 ctx.lineWidth = 1.5;
@@ -427,7 +465,7 @@
                     const snoopyRect = currentSnoopy.getBoundingClientRect();
                     const snoopyX = snoopyRect.left + snoopyRect.width / 2;
                     const snoopyY = snoopyRect.top + snoopyRect.height / 2;
-                    const absorptionRadius = 250;
+                    const absorptionRadius = window.innerWidth < 768 ? 120 : 250;
 
                     flowers = flowers.filter(flower => {
                         const dx = flower.x - snoopyX;
