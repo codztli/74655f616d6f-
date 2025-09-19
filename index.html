@@ -91,21 +91,18 @@
             border-radius: 40% 60% 40% 60% / 50% 50% 50% 50%;
         }
 
-        .snoopy {
+        .character {
             position: absolute;
             width: 80px;
             height: auto;
             opacity: 0;
             cursor: pointer;
             filter: drop-shadow(0 0 8px rgba(255, 255, 204, 0.8)); 
-            animation: float-snoopy var(--snoopy-duration) ease-in-out infinite alternate, 
-                        snoopy-appear 0.8s ease-out forwards,
-                        snoopy-color-change 20s linear infinite;
             z-index: 5;
         }
         
-        .snoopy.disappear {
-            animation: snoopy-disappear 0.6s ease-in forwards;
+        .character.disappear {
+            animation: character-disappear 0.6s ease-in forwards;
             pointer-events: none;
         }
         
@@ -155,7 +152,7 @@
             color: #888;
         }
 
-        .snoopy-message {
+        .character-message {
             position: absolute;
             background: rgba(255, 255, 204, 0.9);
             border-radius: 10px;
@@ -164,18 +161,18 @@
             color: #4b3b2f;
             white-space: nowrap;
             opacity: 0;
-            animation: snoopy-message-show 1s ease-out forwards;
+            animation: character-message-show 1s ease-out forwards;
             pointer-events: none;
             z-index: 6;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        .snoopy-finale-sparkle {
+        .character-finale-sparkle {
             position: absolute;
             background: radial-gradient(circle, rgba(255, 234, 0, 1) 0%, rgba(255, 234, 0, 0.5) 40%, rgba(255, 234, 0, 0) 100%);
             border-radius: 50%;
             pointer-events: none;
-            animation: snoopy-finale-sparkle-anim 1.5s ease-out forwards;
+            animation: character-finale-sparkle-anim 1.5s ease-out forwards;
             z-index: 4;
             transform: scale(0);
         }
@@ -214,23 +211,23 @@
             }
         }
 
-        @keyframes float-snoopy {
+        @keyframes float-character {
             0% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(2deg); }
             100% { transform: translateY(0px) rotate(0deg); }
         }
         
-        @keyframes snoopy-appear {
+        @keyframes character-appear {
             from { opacity: 0; transform: scale(0.5) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0px); }
         }
 
-        @keyframes snoopy-disappear {
+        @keyframes character-disappear {
             0% { opacity: 1; transform: scale(1) rotate(0deg); }
             100% { opacity: 0; transform: scale(0.2) rotate(30deg); }
         }
 
-        @keyframes snoopy-color-change {
+        @keyframes character-color-change {
             from { filter: hue-rotate(0deg) drop-shadow(0 0 8px rgba(255, 255, 204, 0.8)); }
             to { filter: hue-rotate(360deg) drop-shadow(0 0 8px rgba(255, 255, 204, 0.8)); }
         }
@@ -246,16 +243,16 @@
             }
         }
         
-        @keyframes snoopy-message-show {
+        @keyframes character-message-show {
             from { opacity: 0; transform: scale(0.8); }
             to { opacity: 1; transform: scale(1); }
         }
         
-        @keyframes snoopy-message-fade {
+        @keyframes character-message-fade {
             to { opacity: 0; }
         }
         
-        @keyframes snoopy-finale-sparkle-anim {
+        @keyframes character-finale-sparkle-anim {
             from { transform: scale(0); opacity: 1; }
             to { transform: scale(1); opacity: 0; }
         }
@@ -332,10 +329,67 @@
             let flowers = [];
             let lastFlowerTime = 0;
             const flowerGenerationDelay = 100;
-            let currentSnoopy = null;
             let isDrawing = false;
             let isVortexActive = false;
             let vortexEffectElement = null;
+            let themedFlowerType = null;
+
+            const characters = [
+                {
+                    name: 'snoopy',
+                    type: 'main',
+                    flowerType: 3,
+                    src: 'snoopy.png',
+                    messages: [
+                        "¡Para ti, con cariño! 🌻",
+                        "Las flores traen felicidad. 😊",
+                        "Te quiero mucho!!!!!!!. ✨",
+                        "¡Que tu día florezca como estas flores! 💛",
+                        "¡Gracias por estar :) ! 💛",
+                        "¡Eres increíble! 🌟",
+                        "¡Sigue brillando! 🌞",
+                        "¡Eres una flor en este jardín! 🌸",
+                        "¡Tu sonrisa ilumina el día! 😄",
+                        "¡Eres especial! 🌟",
+                        "¡Nunca dejes de soñar! 🌈",
+                        "¡Sigue haciendote mas fuerte! 🌱",
+                        "¡Eres maravillosa! 🌟",
+                        "¡Eres un rayo de sol! ☀️",
+                        "¡Eres una inspiración! 🌟",
+                        "¡Gracias por escucharme! 💖",
+                        "¡Eres mi persona favorita! 💕",
+                        "¡Disfruto mucho tu compañía! 😊",
+                    ]
+                },
+                {
+                    name: 'luffy',
+                    type: 'guest',
+                    flowerType: 4,
+                    src: 'luffy.png',
+                    messages: [
+                        "¡Voy a ser el Rey de los Piratas!",
+                        "¡La carne es lo mejor!",
+                        "¡Esto es muy divertido!",
+                        "¡Tengo a los mejores nakamas!",
+                        "¡Gomu Gomu no...!",
+                    ]
+                },
+                {
+                    name: 'deku',
+                    type: 'guest',
+                    flowerType: 5,
+                    src: 'deku.png',
+                    messages: [
+                        "¡Plus Ultra!",
+                        "¡Tengo que esforzarme más!",
+                        "¡Un héroe siempre encuentra la manera!",
+                        "¡One For All! ¡100%!",
+                        "¡Puedo ser un héroe!",
+                    ]
+                }
+            ];
+
+            let activeCharacters = {};
 
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
@@ -367,7 +421,7 @@
                 }
             }
 
-            function createFlower(x, y) {
+            function createFlower(x, y, themeType = null) {
                 const randomScale = 0.7 + Math.random() * 0.6;
                 const isSpecialColor = Math.random() < 0.15;
                 let hue, saturation, lightness;
@@ -388,7 +442,13 @@
                     lightness = selectedColor.lightness;
                 }
 
-                const flowerType = Math.floor(Math.random() * 3);
+                let flowerType;
+                if (themeType !== null && Math.random() < 0.3) { // 30% chance for themed flower
+                    flowerType = themeType;
+                } else {
+                    // Generate a normal flower (types 0, 1, 2)
+                    flowerType = Math.floor(Math.random() * 3);
+                }
 
                 flowers.push({
                     x, 
@@ -400,7 +460,16 @@
                     targetX: x, 
                     targetY: y,
                     isBeingAbsorbed: false,
+                    isDisappearing: false,
                     flowerType: flowerType
+                });
+            }
+
+            function removeFlowersByType(type) {
+                flowers.forEach(flower => {
+                    if (flower.flowerType === type) {
+                        flower.isDisappearing = true;
+                    }
                 });
             }
 
@@ -410,6 +479,12 @@
                 ctx.rotate(windEffect); // Apply wind
                 ctx.rotate(flower.currentRotation * Math.PI / 180);
                 ctx.scale(flower.scale, flower.scale);
+
+                if (flower.flowerType >= 3) { // If it's a special flower
+                    const pulse = Math.sin(Date.now() / 400) * 5 + 10;
+                    ctx.shadowColor = 'rgba(255, 223, 0, 0.75)'; // Gold glow
+                    ctx.shadowBlur = pulse;
+                }
 
                 // Tallo
                 ctx.beginPath();
@@ -493,18 +568,90 @@
                             ctx.restore();
                         }
                         break;
+                    case 3: // Snoopy Flower
+                        ctx.fillStyle = 'white';
+                        ctx.strokeStyle = '#E0E0E0';
+                        const snoopyPetals = 12;
+                        for (let i = 0; i < snoopyPetals; i++) {
+                            const angle = (i / snoopyPetals) * 2 * Math.PI;
+                            ctx.save();
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            ctx.ellipse(0, 18, 6, 15, 0, 0, 2 * Math.PI);
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                        // Black center
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 10, 0, 2 * Math.PI);
+                        ctx.fillStyle = 'black';
+                        ctx.fill();
+                        break;
+                    case 4: // Luffy Flower
+                        // Hat brim
+                        ctx.fillStyle = '#FFD700'; // Straw color
+                        ctx.strokeStyle = '#DAA520';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 35, 25, 0, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        // Red band
+                        ctx.fillStyle = '#FF0000';
+                        ctx.strokeStyle = '#B22222';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.rect(-25, -8, 50, 10);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        // Top part of the hat
+                        ctx.fillStyle = '#FFD700';
+                        ctx.strokeStyle = '#DAA520';
+                        ctx.beginPath();
+                        ctx.ellipse(0, -5, 20, 15, 0, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.stroke();
+                        break;
+                    case 5: // Deku Flower
+                        ctx.fillStyle = '#008000'; // Green
+                        ctx.strokeStyle = '#006400';
+                        const dekuPetals = 8;
+                        for (let i = 0; i < dekuPetals; i++) {
+                            const angle = (i / dekuPetals) * 2 * Math.PI + (Math.PI / dekuPetals);
+                            ctx.save();
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.lineTo(10, 30);
+                            ctx.lineTo(-10, 30);
+                            ctx.closePath();
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                        // Center
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 8, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#2F4F4F'; // Dark slate gray
+                        ctx.fill();
+                        break;
                 }
 
 
-                // Centro de la flor con brillo
-                const pulse = Math.sin((Date.now() - flower.creationTime) / 400) * 5 + 40; // lightness from 35% to 45%
-                ctx.beginPath();
-                ctx.arc(0, 0, 12, 0, 2 * Math.PI);
-                ctx.fillStyle = `hsla(24, 55%, ${pulse}%, 0.9)`; // Animate lightness
-                ctx.fill();
-                ctx.strokeStyle = "rgba(92, 51, 23, 0.8)"; // Borde más oscuro para el centro
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
+                // Centro de la flor con brillo (except for character flowers)
+                if (flower.flowerType < 3) {
+                    const pulse = Math.sin((Date.now() - flower.creationTime) / 400) * 5 + 40; // lightness from 35% to 45%
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 12, 0, 2 * Math.PI);
+                    ctx.fillStyle = `hsla(24, 55%, ${pulse}%, 0.9)`; // Animate lightness
+                    ctx.fill();
+                    ctx.strokeStyle = "rgba(92, 51, 23, 0.8)"; // Borde más oscuro para el centro
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
 
                 ctx.restore();
             }
@@ -512,16 +659,31 @@
             function animate() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 windEffect += (targetWindEffect - windEffect) * 0.05; // Smooth the wind effect
+
+                flowers.forEach(flower => {
+                    if (flower.isDisappearing) {
+                        flower.scale *= 0.95;
+                        flower.currentRotation += 10;
+                    }
+                });
+
+                flowers = flowers.filter(flower => flower.scale > 0.05);
                 
-                if (currentSnoopy) {
-                    const snoopyRect = currentSnoopy.getBoundingClientRect();
-                    const snoopyX = snoopyRect.left + snoopyRect.width / 2;
-                    const snoopyY = snoopyRect.top + snoopyRect.height / 2;
+                Object.entries(activeCharacters).forEach(([characterName, characterElement]) => {
+                    if (!characterElement) return;
+
+                    const characterInfo = characters.find(c => c.name === characterName);
+                    if (!characterInfo || characterInfo.type !== 'main') return;
+
+                    const characterRect = characterElement.getBoundingClientRect();
+                    const characterX = characterRect.left + characterRect.width / 2;
+                    const characterY = characterRect.top + characterRect.height / 2;
                     const absorptionRadius = window.innerWidth < 768 ? 120 : 250;
 
                     flowers = flowers.filter(flower => {
-                        const dx = flower.x - snoopyX;
-                        const dy = flower.y - snoopyY;
+                        if (flower.isDisappearing) return true; // Don't absorb disappearing flowers
+                        const dx = flower.x - characterX;
+                        const dy = flower.y - characterY;
                         const distance = Math.sqrt(dx * dx + dy * dy);
 
                         if (distance < absorptionRadius) {
@@ -540,7 +702,8 @@
                         }
                         return true;
                     });
-                }
+                });
+
 
                 if (isVortexActive && vortexEffectElement) {
                     const vortexX = parseFloat(vortexEffectElement.style.left) + parseFloat(vortexEffectElement.style.width) / 2;
@@ -589,7 +752,7 @@
                 if (currentTime - lastFlowerTime > 200) {
                     const x = Math.random() * canvas.width;
                     const y = Math.random() * canvas.height;
-                    createFlower(x, y);
+                    createFlower(x, y, themedFlowerType);
                     lastFlowerTime = currentTime;
                 }
 
@@ -699,7 +862,7 @@
                     }
                     const currentTime = Date.now();
                     if (currentTime - lastFlowerTime > flowerGenerationDelay) {
-                        createFlower(clientX, clientY);
+                        createFlower(clientX, clientY, themedFlowerType);
                         lastFlowerTime = currentTime;
                     }
                 }
@@ -766,30 +929,10 @@
                 }
             });
 
-            function createSnoopyMessage(x, y) {
+            function createCharacterMessage(character, x, y) {
                 const message = document.createElement('div');
-                message.classList.add('snoopy-message');
-                const messages = [
-                    "¡Para ti, con cariño! 🌻",
-                    "Las flores traen felicidad. 😊",
-                    "Te quiero mucho!!!!!!!. ✨",
-                    "¡Que tu día florezca como estas flores! 💛",
-                    "¡Gracias por estar :) ! 💛",
-                    "¡Eres increíble! 🌟",
-                    "¡Sigue brillando! 🌞",
-                    "¡Eres una flor en este jardín! 🌸",
-                    "¡Tu sonrisa ilumina el día! 😄",
-                    "¡Eres especial! 🌟",
-                    "¡Nunca dejes de soñar! 🌈",
-                    "¡Sigue haciendote mas fuerte! 🌱",
-                    "¡Eres maravillosa! 🌟",
-                    "¡Eres un rayo de sol! ☀️",
-                    "¡Eres una inspiración! 🌟",
-                    "¡Gracias por escucharme! 💖",
-                    "¡Eres mi persona favorita! 💕",
-                    "¡Disfruto mucho tu compañía! 😊",
-                ];
-                message.textContent = messages[Math.floor(Math.random() * messages.length)];
+                message.classList.add('character-message');
+                message.textContent = character.messages[Math.floor(Math.random() * character.messages.length)];
                 
                 let messageX = x;
                 let messageY = y - 120;
@@ -819,9 +962,9 @@
                 setTimeout(() => message.remove(), 7000);
             }
 
-            function createSnoopyFinaleSparkle(x, y) {
+            function createCharacterFinaleSparkle(x, y) {
                 const finaleSparkle = document.createElement('div');
-                finaleSparkle.classList.add('snoopy-finale-sparkle');
+                finaleSparkle.classList.add('character-finale-sparkle');
                 const size = 100 + Math.random() * 50;
                 finaleSparkle.style.width = `${size}px`;
                 finaleSparkle.style.height = `${size}px`;
@@ -831,61 +974,100 @@
                 setTimeout(() => finaleSparkle.remove(), 1500);
             }
 
-            function showSnoopy() {
-                if (currentSnoopy && garden.contains(currentSnoopy)) {
+            function showCharacter(characterInfo) {
+                if (activeCharacters[characterInfo.name] && garden.contains(activeCharacters[characterInfo.name])) {
                     return;
                 }
-                const snoopy = document.createElement('img');
-                snoopy.src = 'snoopy.png';
-                snoopy.classList.add('snoopy');
-                const x = Math.random() * (window.innerWidth - 80);
-                const y = Math.random() * (window.innerHeight - 80);
-                snoopy.style.left = `${x}px`;
-                snoopy.style.top = `${y}px`;
-                snoopy.style.setProperty('--snoopy-duration', `${5 + Math.random() * 5}s`);
-                garden.appendChild(snoopy);
-                currentSnoopy = snoopy;
+                themedFlowerType = characterInfo.flowerType;
+                const characterElement = document.createElement('img');
+                characterElement.src = characterInfo.src;
+                characterElement.classList.add('character');
+
+                let animation = `float-character ${5 + Math.random() * 5}s ease-in-out infinite alternate, character-appear 0.8s ease-out forwards`;
+                if (characterInfo.name === 'snoopy') {
+                    animation += ', character-color-change 20s linear infinite';
+                }
+                characterElement.style.animation = animation;
+
+                if (characterInfo.type === 'guest') {
+                    characterElement.style.width = '120px';
+                    characterElement.style.filter = 'drop-shadow(0 0 15px rgba(255, 255, 255, 1))';
+                }
+
+                const x = Math.random() * (window.innerWidth - 120);
+                const y = Math.random() * (window.innerHeight - 120);
+                characterElement.style.left = `${x}px`;
+                characterElement.style.top = `${y}px`;
+                garden.appendChild(characterElement);
+                activeCharacters[characterInfo.name] = characterElement;
+
                 const autoDisappearTimeout = setTimeout(() => {
-                    if (currentSnoopy === snoopy) {
-                        snoopy.classList.add('disappear');
-                        createSnoopyMessage(x + 40, y);
-                        createSnoopyFinaleSparkle(x + 40, y + 40);
+                    if (activeCharacters[characterInfo.name] === characterElement) {
+                        characterElement.classList.add('disappear');
+                        createCharacterMessage(characterInfo, x + 40, y);
+                        createCharacterFinaleSparkle(x + 40, y + 40);
                         setTimeout(() => {
-                            snoopy.remove();
-                            currentSnoopy = null;
-                            snoopyCycle();
+                            characterElement.remove();
+                            activeCharacters[characterInfo.name] = null;
+                            if (themedFlowerType === characterInfo.flowerType) {
+                                themedFlowerType = null;
+                            }
+                            removeFlowersByType(characterInfo.flowerType);
                         }, 600);
                     }
                 }, 6000);
-                const handleSnoopyInteraction = (e) => {
-                    if (currentSnoopy === snoopy) {
+
+                const handleCharacterInteraction = (e) => {
+                    if (activeCharacters[characterInfo.name] === characterElement) {
                         if (e.type === 'touchend') e.preventDefault();
-                        const rect = snoopy.getBoundingClientRect();
-                        const snoopyX = rect.left + rect.width / 2;
-                        const snoopyY = rect.top + rect.height / 2;
-                        createSparkle(snoopyX, snoopyY, 20);
+                        const rect = characterElement.getBoundingClientRect();
+                        const characterX = rect.left + rect.width / 2;
+                        const characterY = rect.top + rect.height / 2;
+                        createSparkle(characterX, characterY, 20);
                         clearTimeout(autoDisappearTimeout);
-                        snoopy.classList.add('disappear');
-                        createSnoopyMessage(snoopyX, snoopyY);
-                        createSnoopyFinaleSparkle(snoopyX, snoopyY);
+                        characterElement.classList.add('disappear');
+                        createCharacterMessage(characterInfo, characterX, characterY);
+                        createCharacterFinaleSparkle(characterX, characterY);
                         setTimeout(() => {
-                            snoopy.remove();
-                            currentSnoopy = null;
-                            snoopyCycle();
+                            characterElement.remove();
+                            activeCharacters[characterInfo.name] = null;
+                            if (themedFlowerType === characterInfo.flowerType) {
+                                themedFlowerType = null;
+                            }
+                            removeFlowersByType(characterInfo.flowerType);
                         }, 600);
                     }
                 };
-                snoopy.addEventListener('click', handleSnoopyInteraction);
-                snoopy.addEventListener('touchend', handleSnoopyInteraction);
+                characterElement.addEventListener('click', handleCharacterInteraction);
+                characterElement.addEventListener('touchend', handleCharacterInteraction);
             }
 
-            function snoopyCycle() {
-                const nextAppearanceDelay = 1500 + Math.random() * 2000;
-                setTimeout(() => {
-                    showSnoopy();
-                }, nextAppearanceDelay);
+            function characterCycle() {
+                const randomNumber = Math.random();
+
+                if (randomNumber < 0.7) { // 70% chance for Snoopy
+                    const snoopyInfo = characters.find(c => c.name === 'snoopy');
+                    if (snoopyInfo && !activeCharacters[snoopyInfo.name]) {
+                        showCharacter(snoopyInfo);
+                    }
+                } else { // 30% chance for Luffy or Deku
+                    const isGuestActive = characters
+                        .filter(c => c.type === 'guest')
+                        .some(c => activeCharacters[c.name]);
+
+                    if (!isGuestActive) {
+                        const guestCharacters = characters.filter(c => c.type === 'guest');
+                        if (guestCharacters.length > 0) {
+                            const characterInfo = guestCharacters[Math.floor(Math.random() * guestCharacters.length)];
+                            showCharacter(characterInfo);
+                        }
+                    }
+                }
+
+                const nextAppearanceDelay = 2000 + Math.random() * 2500;
+                setTimeout(characterCycle, nextAppearanceDelay);
             }
-            snoopyCycle();
+            characterCycle();
         });
-    </script></body>
-</html>
+    </script>
+</body>
