@@ -77,6 +77,20 @@
             z-index: 0;
         }
 
+        .petal-particle {
+            position: absolute;
+            pointer-events: none;
+            animation: float-particle var(--duration) linear infinite;
+            opacity: 0;
+            animation-delay: var(--delay);
+            z-index: 0;
+            filter: blur(1px);
+            width: var(--size);
+            height: var(--size);
+            background-color: var(--color);
+            border-radius: 40% 60% 40% 60% / 50% 50% 50% 50%;
+        }
+
         .snoopy {
             position: absolute;
             width: 80px;
@@ -275,6 +289,42 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
+            let windEffect = 0;
+            let targetWindEffect = 0;
+
+            // Wind effect for desktop (mouse)
+            window.addEventListener('mousemove', (e) => {
+                targetWindEffect = (e.clientX / window.innerWidth - 0.5) * 0.4;
+            });
+
+            function handleMotion(event) {
+                const x = event.accelerationIncludingGravity.x;
+                if (x !== null) {
+                    // Normalize the tilt value (-9.8 to 9.8) to our target range (-0.4 to 0.4)
+                    targetWindEffect = Math.max(-1, Math.min(1, x / 9.8)) * -0.4;
+                }
+            }
+
+            // Wind effect for mobile (device motion)
+            if (window.DeviceMotionEvent) {
+                if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                    // For iOS 13+, permission must be requested via a user gesture.
+                    // We add a one-time click listener to the window to request it.
+                    window.addEventListener('click', function requestPermission() {
+                         DeviceMotionEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('devicemotion', handleMotion);
+                            }
+                        })
+                        .catch(console.error);
+                    }, { once: true });
+                } else {
+                    // Non-iOS 13+ devices
+                    window.addEventListener('devicemotion', handleMotion);
+                }
+            }
+
             const garden = document.getElementById('garden');
             const messageBox = document.getElementById('message-box');
             const canvas = document.getElementById('flower-canvas');
@@ -357,6 +407,7 @@
             function drawFlower(flower) {
                 ctx.save();
                 ctx.translate(flower.x, flower.y);
+                ctx.rotate(windEffect); // Apply wind
                 ctx.rotate(flower.currentRotation * Math.PI / 180);
                 ctx.scale(flower.scale, flower.scale);
 
@@ -460,6 +511,7 @@
 
             function animate() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                windEffect += (targetWindEffect - windEffect) * 0.05; // Smooth the wind effect
                 
                 if (currentSnoopy) {
                     const snoopyRect = currentSnoopy.getBoundingClientRect();
@@ -548,27 +600,77 @@
             function createDustParticle() {
                 const particle = document.createElement('div');
                 particle.classList.add('dust-particle');
-                const size = 2 + Math.random() * 4;
+                
+                const randomFactor = Math.random(); // 0 to 1
+                
+                const size = 1 + randomFactor * 3; // size from 1px to 4px
+                const scale = 0.5 + randomFactor * 0.8; // visual scale
+                
                 particle.style.width = `${size}px`;
                 particle.style.height = `${size}px`;
+                
                 const startX = Math.random() * window.innerWidth;
                 const startY = Math.random() * window.innerHeight;
                 particle.style.left = `${startX}px`;
                 particle.style.top = `${startY}px`;
-                const duration = 10 + Math.random() * 10;
-                const delay = Math.random() * 10;
-                const endX = (Math.random() - 0.5) * window.innerWidth;
-                const endY = window.innerHeight * 1.5;
-                const scale = 0.5 + Math.random() * 1;
+                
+                // Smaller particles (further away) move slower (longer duration)
+                const duration = 20 - (randomFactor * 12); // duration from 8s to 20s
+                const delay = Math.random() * 20;
+                
+                // Smaller particles travel less distance
+                const endX = (Math.random() - 0.5) * window.innerWidth * 0.5 * (0.5 + randomFactor);
+                const endY = window.innerHeight * 1.2 * (0.8 + randomFactor);
+
                 particle.style.setProperty('--duration', `${duration}s`);
                 particle.style.setProperty('--delay', `${delay}s`);
                 particle.style.setProperty('--endX', `${endX}px`);
                 particle.style.setProperty('--endY', `${endY}px`);
                 particle.style.setProperty('--scale', `${scale}`);
+                
                 garden.appendChild(particle);
                 setTimeout(() => { particle.remove(); }, (duration + delay) * 1000);
             }
             setInterval(createDustParticle, 500);
+
+            function createPetalParticle() {
+                const particle = document.createElement('div');
+                particle.classList.add('petal-particle');
+
+                const randomFactor = Math.random(); // 0 to 1
+
+                const size = 5 + randomFactor * 8; // Petals are a bit larger
+
+                // Use flower colors
+                const hue = 330 + Math.random() * 60; // Pinks, purples, yellows
+                const saturation = 70 + Math.random() * 30;
+                const lightness = 65 + Math.random() * 15;
+                
+                const startX = Math.random() * window.innerWidth;
+                const startY = -50; // Start from above the screen
+                particle.style.left = `${startX}px`;
+                particle.style.top = `${startY}px`;
+
+                const duration = 20 - (randomFactor * 12); // 8s to 20s
+                const delay = Math.random() * 20;
+
+                const endX = (Math.random() - 0.5) * window.innerWidth * 0.5 * (0.5 + randomFactor);
+                const endY = window.innerHeight + 100; // Fall all the way down
+
+                const scale = 0.8 + randomFactor * 0.7;
+
+                particle.style.setProperty('--duration', `${duration}s`);
+                particle.style.setProperty('--delay', `${delay}s`);
+                particle.style.setProperty('--endX', `${endX}px`);
+                particle.style.setProperty('--endY', `${endY}px`);
+                particle.style.setProperty('--scale', `${scale}`);
+                particle.style.setProperty('--size', `${size}px`);
+                particle.style.setProperty('--color', `hsla(${hue}, ${saturation}%, ${lightness}%, 0.6)`);
+
+                garden.appendChild(particle);
+                setTimeout(() => { particle.remove(); }, (duration + delay) * 1000);
+            }
+            setInterval(createPetalParticle, 800);
 
             function handleInteraction(e, type) {
                 const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : undefined);
@@ -785,6 +887,5 @@
             }
             snoopyCycle();
         });
-    </script>
-</body>
+    </script></body>
 </html>
