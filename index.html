@@ -334,6 +334,8 @@
             let vortexEffectElement = null;
             let themedFlowerType = null;
 
+            const flowerMaxAge = 45000; // Flowers disappear after 45 seconds
+
             const characters = [
                 {
                     name: 'snoopy',
@@ -568,7 +570,7 @@
                             ctx.restore();
                         }
                         break;
-                    case 3: // Snoopy Flower
+                    case 3: // Snoopy Flower (Reverted)
                         ctx.fillStyle = 'white';
                         ctx.strokeStyle = '#E0E0E0';
                         const snoopyPetals = 12;
@@ -588,34 +590,35 @@
                         ctx.fillStyle = 'black';
                         ctx.fill();
                         break;
-                    case 4: // Luffy Flower
+                    case 4: // Luffy Flower - Straw Hat (New Design)
                         // Hat brim
                         ctx.fillStyle = '#FFD700'; // Straw color
                         ctx.strokeStyle = '#DAA520';
                         ctx.lineWidth = 2;
                         ctx.beginPath();
-                        ctx.ellipse(0, 0, 35, 25, 0, 0, 2 * Math.PI);
+                        ctx.ellipse(0, 5, 35, 15, 0, 0, 2 * Math.PI); // Make it more of an ellipse
+                        ctx.fill();
+                        ctx.stroke();
+
+                        // Top part of the hat (more dome-like)
+                        ctx.fillStyle = '#FBC02D'; // Slightly darker straw color
+                        ctx.beginPath();
+                        ctx.moveTo(-20, -5);
+                        ctx.quadraticCurveTo(0, -30, 20, -5);
+                        ctx.closePath();
                         ctx.fill();
                         ctx.stroke();
 
                         // Red band
-                        ctx.fillStyle = '#FF0000';
-                        ctx.strokeStyle = '#B22222';
-                        ctx.lineWidth = 1;
+                        ctx.fillStyle = '#FF1744';
+                        ctx.strokeStyle = '#C4001D';
+                        ctx.lineWidth = 1.5;
                         ctx.beginPath();
-                        ctx.rect(-25, -8, 50, 10);
-                        ctx.fill();
-                        ctx.stroke();
-                        
-                        // Top part of the hat
-                        ctx.fillStyle = '#FFD700';
-                        ctx.strokeStyle = '#DAA520';
-                        ctx.beginPath();
-                        ctx.ellipse(0, -5, 20, 15, 0, 0, 2 * Math.PI);
+                        ctx.rect(-22, -8, 44, 10);
                         ctx.fill();
                         ctx.stroke();
                         break;
-                    case 5: // Deku Flower
+                    case 5: // Deku Flower (Reverted)
                         ctx.fillStyle = '#008000'; // Green
                         ctx.strokeStyle = '#006400';
                         const dekuPetals = 8;
@@ -660,20 +663,30 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 windEffect += (targetWindEffect - windEffect) * 0.05; // Smooth the wind effect
 
+                const currentTime = Date.now(); // Get current time once
+                
+                // Handle flower aging and disappearing animation
                 flowers.forEach(flower => {
+                    // Fade out old flowers
+                    if (!flower.isDisappearing && (currentTime - flower.creationTime > flowerMaxAge)) {
+                        flower.isDisappearing = true;
+                    }
+
                     if (flower.isDisappearing) {
                         flower.scale *= 0.95;
                         flower.currentRotation += 10;
                     }
                 });
 
+                // Filter out flowers that have completely faded
                 flowers = flowers.filter(flower => flower.scale > 0.05);
                 
+                // Handle character absorption
                 Object.entries(activeCharacters).forEach(([characterName, characterElement]) => {
                     if (!characterElement) return;
 
                     const characterInfo = characters.find(c => c.name === characterName);
-                    if (!characterInfo || characterInfo.type !== 'main') return;
+                    if (!characterInfo) return;
 
                     const characterRect = characterElement.getBoundingClientRect();
                     const characterX = characterRect.left + characterRect.width / 2;
@@ -681,7 +694,7 @@
                     const absorptionRadius = window.innerWidth < 768 ? 120 : 250;
 
                     flowers = flowers.filter(flower => {
-                        if (flower.isDisappearing) return true; // Don't absorb disappearing flowers
+                        if (flower.isDisappearing) return true;
                         const dx = flower.x - characterX;
                         const dy = flower.y - characterY;
                         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -704,7 +717,7 @@
                     });
                 });
 
-
+                // Handle vortex effect
                 if (isVortexActive && vortexEffectElement) {
                     const vortexX = parseFloat(vortexEffectElement.style.left) + parseFloat(vortexEffectElement.style.width) / 2;
                     const vortexY = parseFloat(vortexEffectElement.style.top) + parseFloat(vortexEffectElement.style.height) / 2;
@@ -734,6 +747,7 @@
                     });
                 }
                 
+                // Filter flowers that are off-screen
                 const onScreenFlowers = flowers.filter(flower => 
                     flower.x > -100 && flower.x < canvas.width + 100 &&
                     flower.y > -100 && flower.y < canvas.height + 100
@@ -741,6 +755,7 @@
 
                 flowers = onScreenFlowers;
 
+                // Draw all remaining flowers
                 flowers.forEach(flower => {
                     if (!flower.isBeingAbsorbed) {
                         flower.currentRotation += 0.1;
@@ -748,12 +763,12 @@
                     drawFlower(flower);
                 });
                 
-                const currentTime = Date.now();
-                if (currentTime - lastFlowerTime > 200) {
+                // Create new flowers periodically
+                if (Date.now() - lastFlowerTime > 200) {
                     const x = Math.random() * canvas.width;
                     const y = Math.random() * canvas.height;
                     createFlower(x, y, themedFlowerType);
-                    lastFlowerTime = currentTime;
+                    lastFlowerTime = Date.now();
                 }
 
                 requestAnimationFrame(animate);
@@ -994,8 +1009,48 @@
                     characterElement.style.filter = 'drop-shadow(0 0 15px rgba(255, 255, 255, 1))';
                 }
 
-                const x = Math.random() * (window.innerWidth - 120);
-                const y = Math.random() * (window.innerHeight - 120);
+                let x, y;
+                const maxAttempts = 30; // To avoid infinite loops
+                const newCharWidth = (characterInfo.type === 'guest') ? 120 : 80;
+                const newCharHeight = newCharWidth * 1.2; // Approximation for collision detection
+                const padding = 25; // Extra space between characters
+
+                for (let i = 0; i < maxAttempts; i++) {
+                    x = Math.random() * (window.innerWidth - newCharWidth);
+                    y = Math.random() * (window.innerHeight - newCharHeight);
+                    
+                    let overlaps = false;
+                    for (const charName in activeCharacters) {
+                        const existingElement = activeCharacters[charName];
+                        if (existingElement && garden.contains(existingElement)) {
+                            const rect = existingElement.getBoundingClientRect();
+                            
+                            // Define the bounding box for the new character, including padding
+                            const newRect = {
+                                left: x - padding,
+                                top: y - padding,
+                                right: x + newCharWidth + padding,
+                                bottom: y + newCharHeight + padding
+                            };
+
+                            // Check for overlap
+                            if (
+                                newRect.left < rect.right &&
+                                newRect.right > rect.left &&
+                                newRect.top < rect.bottom &&
+                                newRect.bottom > rect.top
+                            ) {
+                                overlaps = true;
+                                break; // Overlaps, try a new position
+                            }
+                        }
+                    }
+
+                    if (!overlaps) {
+                        break; // Found a good position
+                    }
+                }
+
                 characterElement.style.left = `${x}px`;
                 characterElement.style.top = `${y}px`;
                 garden.appendChild(characterElement);
@@ -1067,7 +1122,9 @@
                 const nextAppearanceDelay = 2000 + Math.random() * 2500;
                 setTimeout(characterCycle, nextAppearanceDelay);
             }
-            characterCycle();
+
+            // Delay the start of the character cycle until after the initial message disappears.
+            setTimeout(characterCycle, 10000);
         });
     </script>
 </body>
