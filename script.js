@@ -54,6 +54,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 "¡Plus Ultra!", "¡Tengo que esforzarme más!", "¡Un héroe siempre encuentra la manera!",
                 "¡One For All! ¡100%!", "¡Puedo ser un héroe!",
             ]
+        },
+        {
+            name: 'abuela',
+            type: 'guest',
+            flowerType: 6,
+            src: 'abuela.png',
+            messages: [
+                "¡Suéltenme, mocos de mierda! Les juro que voy a matar a todos en esta casa.",
+                "¿En serio crees que dejaría que unos mocosos como ustedes me derrotaran? ¡No subestimen a sus mayores!",
+                "Nunca olvidaré lo que me hicieron, cabrones.",
+                "Vamos, tráelo.",
+                "¡A jugar!"
+            ]
         }
     ];
     let activeCharacters = {};
@@ -218,6 +231,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     offscreenCtx.restore();
                 }
                 offscreenCtx.beginPath(); offscreenCtx.arc(0, 0, 8, 0, 2 * Math.PI); offscreenCtx.fillStyle = '#2F4F4F'; offscreenCtx.fill();
+                break;
+            case 6: // Abuela Flower (spiky, dark green, red center)
+                offscreenCtx.fillStyle = '#33691E'; // Dark green petals
+                offscreenCtx.strokeStyle = '#1B5E20';
+                const abuelaPetals = 6;
+                for (let i = 0; i < abuelaPetals; i++) {
+                    const angle = (i / abuelaPetals) * 2 * Math.PI;
+                    offscreenCtx.save(); offscreenCtx.rotate(angle);
+                    offscreenCtx.beginPath(); offscreenCtx.moveTo(0, 0); offscreenCtx.lineTo(15, 25); offscreenCtx.lineTo(0, 30); offscreenCtx.lineTo(-15, 25); offscreenCtx.closePath();
+                    offscreenCtx.fill(); offscreenCtx.stroke();
+                    offscreenCtx.restore();
+                }
+                offscreenCtx.beginPath(); offscreenCtx.arc(0, 0, 10, 0, 2 * Math.PI); offscreenCtx.fillStyle = '#D32F2F'; offscreenCtx.fill(); // Red center
                 break;
         }
 
