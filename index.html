@@ -303,6 +303,30 @@
                     // Normalize the tilt value (-9.8 to 9.8) to our target range (-0.4 to 0.4)
                     targetWindEffect = Math.max(-1, Math.min(1, x / 9.8)) * -0.4;
                 }
+
+                // Shake detection logic
+                const currentTime = new Date().getTime();
+                if (currentTime - lastShakeTime > 1000) { // Throttle to 1 second
+                    const accel = event.accelerationIncludingGravity;
+                    if (lastAccel.x !== null) {
+                        const deltaX = Math.abs(accel.x - lastAccel.x);
+                        const deltaY = Math.abs(accel.y - lastAccel.y);
+                        const deltaZ = Math.abs(accel.z - lastAccel.z);
+
+                        if ((deltaX + deltaY + deltaZ) > shakeThreshold) {
+                            lastShakeTime = currentTime;
+                            
+                            // Make all flowers disappear
+                            flowers.forEach(flower => {
+                                flower.isDisappearing = true;
+                            });
+
+                            // Add a central sparkle effect as feedback
+                            createSparkle(window.innerWidth / 2, window.innerHeight / 2, 50);
+                        }
+                    }
+                    lastAccel = { x: accel.x, y: accel.y, z: accel.z };
+                }
             }
 
             // Wind effect for mobile (device motion)
