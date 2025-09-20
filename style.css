@@ -269,3 +269,23 @@ canvas {
     from { background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%; }
     to { background-position: 0% 0%, 100% 100%, 0% 0%, 0% 0%, 0% 0%; }
 }
+
+.character-message-snoopy {
+    background: rgba(173, 216, 230, 0.9); /* Light Blue */
+    color: #191970; /* Midnight Blue */
+}
+
+.character-message-luffy {
+    background: rgba(255, 99, 71, 0.9); /* Tomato */
+    color: #4B0000; /* Dark Red */
+}
+
+.character-message-deku {
+    background: rgba(144, 238, 144, 0.9); /* Light Green */
+    color: #006400; /* Dark Green */
+}
+
+.character-message-abuela {
+    background: rgba(139, 0, 0, 0.9); /* Dark Red */
+    color: #FFFFFF; /* White */
+}

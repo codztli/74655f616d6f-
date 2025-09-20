@@ -61,11 +61,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
             flowerType: 6,
             src: 'abuela.png',
             messages: [
-                "¡Suéltenme, mocos de mierda! Les juro que voy a matar a todos en esta casa.",
-                "¿En serio crees que dejaría que unos mocosos como ustedes me derrotaran? ¡No subestimen a sus mayores!",
-                "Nunca olvidaré lo que me hicieron, cabrones.",
-                "Vamos, tráelo.",
-                "¡A jugar!"
+                "¡Okarun, Momo, a jugar!",
+                "¡Momo, no dejes a Okarun!",
+                "¡Okarun, eres lento!",
+                "¡Momo, pelea!",
+                "¡Dónde están Okarun y Momo!"
             ]
         }
     ];
@@ -542,6 +542,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     function createCharacterMessage(character, x, y) {
         const message = document.createElement('div');
         message.classList.add('character-message');
+        message.classList.add(`character-message-${character.name}`);
         message.textContent = character.messages[Math.floor(Math.random() * character.messages.length)];
         
         document.body.appendChild(message); // Append to get size
