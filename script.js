@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 const dx = flower.x - charX;
                 const dy = flower.y - charY;
                 const distanceSq = dx * dx + dy * dy;
-                const absorptionRadius = window.innerWidth < 768 ? 150 : 300;
+                const absorptionRadius = window.innerWidth < 768 ? 120 : 250;
                 const absorptionRadiusSq = absorptionRadius * absorptionRadius;
 
                 if (distanceSq < absorptionRadiusSq) {
