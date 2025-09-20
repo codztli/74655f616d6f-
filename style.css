@@ -266,8 +266,21 @@ canvas {
 }
 
 @keyframes subtle-bg-pan {
-    from { background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%; }
-    to { background-position: 0% 0%, 100% 100%, 0% 0%, 0% 0%, 0% 0%; }
+    0% {
+        background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+    }
+    25% {
+        background-position: 0% 0%, 25% 50%, 5% 5%, 0% 0%, 0% 0%;
+    }
+    50% {
+        background-position: 0% 0%, 50% 100%, 0% 10%, 0% 0%, 0% 0%;
+    }
+    75% {
+        background-position: 0% 0%, 75% 50%, -5% 5%, 0% 0%, 0% 0%;
+    }
+    100% {
+        background-position: 0% 0%, 100% 0%, 0% 0%, 0% 0%, 0% 0%;
+    }
 }
 
 .character-message-snoopy {

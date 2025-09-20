@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let themedFlowerType = null;
     let lastFlowerTime = 0;
     const flowerGenerationDelay = 200;
-    const flowerMaxAge = 45000;
+    const isMobile = window.innerWidth < 768;
+    const flowerMaxAge = isMobile ? 30000 : 45000;
 
     // --- Object Pools for Performance ---
     let flowers = [];
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // --- Particle Creation (Canvas) ---
     function createDustParticle() {
-        if (dustParticles.length > 50) return; // Limit max particles
+        if (dustParticles.length > (isMobile ? 30 : 50)) return; // Limit max particles
         const randomFactor = Math.random();
         dustParticles.push({
             x: Math.random() * canvas.width,
@@ -101,7 +102,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
 
     function createPetalParticle() {
-        if (petalParticles.length > 30) return; // Limit max particles
+        if (petalParticles.length > (isMobile ? 15 : 30)) return; // Limit max particles
         const randomFactor = Math.random();
         const hue = 330 + Math.random() * 60;
         petalParticles.push({
@@ -138,7 +139,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             hue = selectedColor.hue; saturation = selectedColor.saturation; lightness = selectedColor.lightness;
         }
 
-        const flowerType = (themeType !== null && Math.random() < 0.3) ? themeType : Math.floor(Math.random() * 3);
+        const flowerType = (themeType !== null && Math.random() < 0.4) ? themeType : Math.floor(Math.random() * 3);
         const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         const lighterColor = `hsl(${hue}, ${saturation}%, ${Math.min(100, lightness + 20)}%)`;
         const darkerColor = `hsl(${hue}, ${saturation}%, ${Math.max(0, lightness - 20)}%)`;
@@ -294,13 +295,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
         ctx.scale(flower.scale * growthScale, flower.scale * growthScale);
 
         // Apply dynamic shadow for special flowers before drawing
-        if (flower.flowerType >= 3) {
-            ctx.shadowColor = 'rgba(255, 223, 0, 0.75)';
-            ctx.shadowBlur = Math.sin(now / 400) * 5 + 10;
-        } else {
-            // Add a subtle glow to normal flowers
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-            ctx.shadowBlur = Math.sin(now / 500 + flower.creationTime / 1000) * 3 + 6;
+        if (!isMobile) {
+            if (flower.flowerType >= 3) {
+                ctx.shadowColor = 'rgba(255, 223, 0, 0.75)';
+                ctx.shadowBlur = Math.sin(now / 400) * 5 + 10;
+            } else {
+                // Add a subtle glow to normal flowers
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+                ctx.shadowBlur = Math.sin(now / 500 + flower.creationTime / 1000) * 3 + 6;
+            }
         }
 
         // Draw the pre-rendered flower
@@ -665,15 +668,26 @@ document.addEventListener('DOMContentLoaded', (event) => {
         characterElement.addEventListener('touchend', handleInteraction);
     }
 
+    const sequentialCharacters = characters.slice(); // Make a copy to not modify the original
+
     function characterCycle() {
-        if (Math.random() < 0.7) {
-            if (snoopyInfo && !activeCharacters[snoopyInfo.name]) showCharacter(snoopyInfo);
+        if (sequentialCharacters.length > 0) {
+            // Sequential phase
+            const characterToShow = sequentialCharacters.shift(); // Get and remove the first character
+            if (characterToShow) {
+                showCharacter(characterToShow);
+            }
         } else {
-            const isGuestActive = characters.filter(c => c.type === 'guest').some(c => activeCharacters[c.name]);
-            if (!isGuestActive) {
+            // Random phase
+            if (Math.random() < 0.7) {
+                if (snoopyInfo && !activeCharacters[snoopyInfo.name]) showCharacter(snoopyInfo);
+            } else {
                 const guestCharacters = characters.filter(c => c.type === 'guest');
-                if (guestCharacters.length > 0) {
-                    showCharacter(guestCharacters[Math.floor(Math.random() * guestCharacters.length)]);
+                const isGuestActive = guestCharacters.some(c => activeCharacters[c.name]);
+                if (!isGuestActive) {
+                    if (guestCharacters.length > 0) {
+                        showCharacter(guestCharacters[Math.floor(Math.random() * guestCharacters.length)]);
+                    }
                 }
             }
         }
