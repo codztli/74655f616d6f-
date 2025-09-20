@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let themedFlowerType = null;
     let lastFlowerTime = 0;
     const isMobile = window.innerWidth < 768;
-    const flowerGenerationDelay = isMobile ? 100 : 200;
-    const flowerMaxAge = 45000;
+    const flowerGenerationDelay = 100;
+    const flowerMaxAge = isMobile ? 45000 : 60000;
 
     // --- Object Pools for Performance ---
     let flowers = [];
@@ -469,7 +469,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
         
         // --- Generate new flowers ---
-        if (Date.now() - lastFlowerTime > 200) {
+        if (Date.now() - lastFlowerTime > (isMobile ? 200 : 75)) {
             createFlower(Math.random() * canvas.width, Math.random() * canvas.height, themedFlowerType);
             lastFlowerTime = Date.now();
         }
