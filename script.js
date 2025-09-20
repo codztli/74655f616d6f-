@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let vortexEffectElement = null;
     let themedFlowerType = null;
     let lastFlowerTime = 0;
-    const flowerGenerationDelay = 100;
+    const flowerGenerationDelay = 200;
     const flowerMaxAge = 45000;
 
     // --- Object Pools for Performance ---
@@ -232,18 +232,33 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 }
                 offscreenCtx.beginPath(); offscreenCtx.arc(0, 0, 8, 0, 2 * Math.PI); offscreenCtx.fillStyle = '#2F4F4F'; offscreenCtx.fill();
                 break;
-            case 6: // Abuela Flower (spiky, dark green, red center)
-                offscreenCtx.fillStyle = '#33691E'; // Dark green petals
-                offscreenCtx.strokeStyle = '#1B5E20';
-                const abuelaPetals = 6;
+            case 6: // "Turbo Abuela" Flower
+                // White, flowing petals representing her hair
+                offscreenCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                offscreenCtx.strokeStyle = 'rgba(200, 200, 200, 0.7)';
+                offscreenCtx.lineWidth = 1;
+                const abuelaPetals = 7;
                 for (let i = 0; i < abuelaPetals; i++) {
                     const angle = (i / abuelaPetals) * 2 * Math.PI;
-                    offscreenCtx.save(); offscreenCtx.rotate(angle);
-                    offscreenCtx.beginPath(); offscreenCtx.moveTo(0, 0); offscreenCtx.lineTo(15, 25); offscreenCtx.lineTo(0, 30); offscreenCtx.lineTo(-15, 25); offscreenCtx.closePath();
-                    offscreenCtx.fill(); offscreenCtx.stroke();
+                    offscreenCtx.save();
+                    offscreenCtx.rotate(angle);
+                    offscreenCtx.beginPath();
+                    offscreenCtx.moveTo(0, 10);
+                    offscreenCtx.quadraticCurveTo(20, 25, 0, 45);
+                    offscreenCtx.quadraticCurveTo(-20, 25, 0, 10);
+                    offscreenCtx.fill();
+                    offscreenCtx.stroke();
                     offscreenCtx.restore();
                 }
-                offscreenCtx.beginPath(); offscreenCtx.arc(0, 0, 10, 0, 2 * Math.PI); offscreenCtx.fillStyle = '#D32F2F'; offscreenCtx.fill(); // Red center
+                
+                // Red rectangle center representing her glasses
+                offscreenCtx.fillStyle = 'rgba(255, 20, 20, 1)';
+                offscreenCtx.strokeStyle = 'rgba(150, 0, 0, 1)';
+                offscreenCtx.lineWidth = 2;
+                offscreenCtx.beginPath();
+                offscreenCtx.rect(-12, -6, 24, 12);
+                offscreenCtx.fill();
+                offscreenCtx.stroke();
                 break;
         }
 
@@ -280,15 +295,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
         if (flower.flowerType >= 3) {
             ctx.shadowColor = 'rgba(255, 223, 0, 0.75)';
             ctx.shadowBlur = Math.sin(Date.now() / 400) * 5 + 10;
+        } else {
+            // Add a subtle glow to normal flowers
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+            ctx.shadowBlur = Math.sin(Date.now() / 500 + flower.creationTime / 1000) * 3 + 6;
         }
 
         // Draw the pre-rendered flower
         ctx.drawImage(flower.offscreenCanvas, -flower.canvasSize / 2, -flower.canvasSize / 2);
 
         // Reset shadow for other elements
-        if (flower.flowerType >= 3) {
-            ctx.shadowColor = 'transparent';
-        }
+        ctx.shadowColor = 'transparent';
 
         // Draw dynamic pulsing center for normal flowers
         if (flower.flowerType < 3) {
@@ -400,7 +417,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 const dx = flower.x - charX;
                 const dy = flower.y - charY;
                 const distanceSq = dx * dx + dy * dy;
-                const absorptionRadius = window.innerWidth < 768 ? 120 : 250;
+                const absorptionRadius = window.innerWidth < 768 ? 150 : 300;
                 const absorptionRadiusSq = absorptionRadius * absorptionRadius;
 
                 if (distanceSq < absorptionRadiusSq) {

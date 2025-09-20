@@ -57,7 +57,7 @@ canvas {
     pointer-events: none;
     animation: sparkle-burst 0.5s forwards;
     box-shadow: 0 0 5px #ffea00, 0 0 10px #ffea00, 0 0 15px #ffea00;
-    z-index: 2;
+    z-index: 7;
     will-change: transform, opacity;
 }
 
