@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // --- Particle Creation (Canvas) ---
     function createDustParticle() {
+        if (dustParticles.length > 50) return; // Limit max particles
         const randomFactor = Math.random();
         dustParticles.push({
             x: Math.random() * canvas.width,
@@ -93,13 +94,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
             size: 1 + randomFactor * 3,
             opacity: 1,
             life: 1, // 1 = full life, 0 = dead
-            duration: 8 + (1 - randomFactor) * 12, // 8s to 20s
+            duration: 5 + (1 - randomFactor) * 10, // 5s to 15s
             speedX: (Math.random() - 0.5) * 20,
             speedY: (Math.random() - 0.5) * 20,
         });
     }
 
     function createPetalParticle() {
+        if (petalParticles.length > 30) return; // Limit max particles
         const randomFactor = Math.random();
         const hue = 330 + Math.random() * 60;
         petalParticles.push({
@@ -108,7 +110,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             size: 5 + randomFactor * 8,
             opacity: 1,
             life: 1,
-            duration: 8 + (1 - randomFactor) * 12,
+            duration: 5 + (1 - randomFactor) * 10,
             speedX: (Math.random() - 0.5) * 40,
             speedY: 20 + Math.random() * 20,
             color: `hsla(${hue}, ${70 + Math.random() * 30}%, ${65 + Math.random() * 15}%, 0.6)`,
@@ -276,13 +278,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
 
     // --- Drawing Functions ---
-    function drawFlower(flower) {
+    function drawFlower(flower, now) {
         ctx.save();
-        ctx.translate(flower.x, flower.y);
+        ctx.translate(Math.round(flower.x), Math.round(flower.y));
         ctx.rotate(windEffect + flower.currentRotation * Math.PI / 180);
 
         // Add a growing animation for new flowers
-        const age = Date.now() - flower.creationTime;
+        const age = now - flower.creationTime;
         const growthDuration = 500; // 0.5 seconds
         let growthScale = 1;
         if (age < growthDuration) {
@@ -294,11 +296,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
         // Apply dynamic shadow for special flowers before drawing
         if (flower.flowerType >= 3) {
             ctx.shadowColor = 'rgba(255, 223, 0, 0.75)';
-            ctx.shadowBlur = Math.sin(Date.now() / 400) * 5 + 10;
+            ctx.shadowBlur = Math.sin(now / 400) * 5 + 10;
         } else {
             // Add a subtle glow to normal flowers
             ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-            ctx.shadowBlur = Math.sin(Date.now() / 500 + flower.creationTime / 1000) * 3 + 6;
+            ctx.shadowBlur = Math.sin(now / 500 + flower.creationTime / 1000) * 3 + 6;
         }
 
         // Draw the pre-rendered flower
@@ -309,7 +311,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
         // Draw dynamic pulsing center for normal flowers
         if (flower.flowerType < 3) {
-            const pulse = Math.sin((Date.now() - flower.creationTime) / 400) * 5 + 40;
+            const pulse = Math.sin((now - flower.creationTime) / 400) * 5 + 40;
             ctx.beginPath();
             ctx.arc(0, 0, 12, 0, 2 * Math.PI);
             ctx.fillStyle = `hsla(24, 55%, ${pulse}%, 0.9)`;
@@ -324,45 +326,49 @@ document.addEventListener('DOMContentLoaded', (event) => {
     function drawParticles(deltaTime) {
         // Dust
         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        for (let i = dustParticles.length - 1; i >= 0; i--) {
+        for (let i = 0; i < dustParticles.length; ) {
             const p = dustParticles[i];
             p.life -= deltaTime / p.duration;
             if (p.life <= 0) {
-                dustParticles.splice(i, 1);
-                continue;
+                dustParticles[i] = dustParticles[dustParticles.length - 1];
+                dustParticles.pop();
+            } else {
+                // Make dust particles react to wind
+                p.x += (p.speedX + windEffect * 20) * deltaTime; // Wind has a smaller effect on dust
+                p.y += p.speedY * deltaTime;
+                p.opacity = p.life > 0.5 ? (1 - p.life) * 2 : p.life * 2;
+                ctx.globalAlpha = p.opacity;
+                ctx.beginPath();
+                ctx.arc(Math.round(p.x), Math.round(p.y), p.size, 0, 2 * Math.PI);
+                ctx.fill();
+                i++;
             }
-            // Make dust particles react to wind
-            p.x += (p.speedX + windEffect * 20) * deltaTime; // Wind has a smaller effect on dust
-            p.y += p.speedY * deltaTime;
-            p.opacity = p.life > 0.5 ? (1 - p.life) * 2 : p.life * 2;
-            ctx.globalAlpha = p.opacity;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI);
-            ctx.fill();
         }
 
         // Petals
-        for (let i = petalParticles.length - 1; i >= 0; i--) {
+        for (let i = 0; i < petalParticles.length; ) {
             const p = petalParticles[i];
             p.life -= deltaTime / p.duration;
             if (p.life <= 0 || p.y > canvas.height + p.size) {
-                petalParticles.splice(i, 1);
-                continue;
+                petalParticles[i] = petalParticles[petalParticles.length - 1];
+                petalParticles.pop();
+            } else {
+                p.x += (p.speedX + windEffect * 100) * deltaTime;
+                p.y += p.speedY * deltaTime;
+                p.rotation += p.rotationSpeed * deltaTime;
+                p.opacity = p.life > 0.5 ? (1 - p.life) * 2 : p.life * 2;
+                
+                ctx.globalAlpha = p.opacity;
+                ctx.fillStyle = p.color;
+                ctx.save();
+                ctx.translate(Math.round(p.x), Math.round(p.y));
+                ctx.rotate(p.rotation);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, p.size, p.size / 2, 0, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.restore();
+                i++;
             }
-            p.x += (p.speedX + windEffect * 100) * deltaTime;
-            p.y += p.speedY * deltaTime;
-            p.rotation += p.rotationSpeed * deltaTime;
-            p.opacity = p.life > 0.5 ? (1 - p.life) * 2 : p.life * 2;
-            
-            ctx.globalAlpha = p.opacity;
-            ctx.fillStyle = p.color;
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rotation);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, p.size, p.size / 2, 0, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.restore();
         }
         ctx.globalAlpha = 1;
     }
@@ -372,6 +378,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     function animate(currentTime) {
         const deltaTime = (currentTime - lastTime) / 1000 || 0;
         lastTime = currentTime;
+        const now = Date.now(); // Get time once per frame
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         windEffect += (targetWindEffect - windEffect) * 0.05;
@@ -391,7 +398,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             const flower = flowers[i];
             
             // 1. Update state (aging, disappearing)
-            if (!flower.isDisappearing && (currentTime - flower.creationTime > flowerMaxAge)) {
+            if (!flower.isDisappearing && (now - flower.creationTime > flowerMaxAge)) {
                 flower.isDisappearing = true;
             }
             if (flower.isDisappearing) {
@@ -455,7 +462,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             if (!flower.isBeingAbsorbed) {
                 flower.currentRotation += 0.1;
             }
-            drawFlower(flower);
+            drawFlower(flower, now);
         }
         
         // --- Generate new flowers ---
