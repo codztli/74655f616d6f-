@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let vortexEffectElement = null;
     let themedFlowerType = null;
     let lastFlowerTime = 0;
-    const flowerGenerationDelay = 200;
     const isMobile = window.innerWidth < 768;
-    const flowerMaxAge = isMobile ? 30000 : 45000;
+    const flowerGenerationDelay = isMobile ? 100 : 200;
+    const flowerMaxAge = 45000;
 
     // --- Object Pools for Performance ---
     let flowers = [];
