@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 break;
         }
 
-        flowers.push({
+        flowers.unshift({
             x, y, scale: randomScale, currentRotation: Math.random() * 360,
             creationTime: Date.now(), isBeingAbsorbed: false, isDisappearing: false, flowerType,
             offscreenCanvas, canvasSize
