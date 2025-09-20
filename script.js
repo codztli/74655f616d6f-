@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', (event) => {
+    const loader = document.getElementById('loader');
+    if (loader) {
+        // Hide the loader after a delay
+        setTimeout(() => {
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500); // Corresponds to the transition duration in CSS
+        }, 1500); // A bit of delay to ensure a smooth experience
+    }
+
     // --- Setup ---
     const garden = document.getElementById('garden');
     const messageBox = document.getElementById('message-box');
